@@ -1,0 +1,8 @@
+transformers == 4.42.3
+torch>=2.2
+datasets
+accelerate
+icecream
+tqdm
+zstandard
+lm_eval
