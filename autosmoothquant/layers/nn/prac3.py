@@ -275,7 +275,7 @@ class W8A8BFP32OFP32LinearWithQuantScale(W8A8BFP32OFP32Linear):
         dequant_scale = self.dequant_scale.item()
         quant_scale = self.quant_scale.item()
         # quant here
-        
+        import pdb; pdb.set_trace() 
         #  목표: 활성화 값을 Int8로 양자화  한다
         # 1) 활성값을 스케일로 정규화→정수 근사→[-128,127] 포화→INT8 캐스팅하여 a8 입력을 만든다.
         # x = (x / quant_scale).round().clamp(-128, 127).to(torch.int8)

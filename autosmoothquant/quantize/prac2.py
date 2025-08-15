@@ -21,15 +21,29 @@ def smooth_ln_fcs(ln, fcs, act_scales, model_type = "transformers", alpha=0.5, o
 
     device, dtype = fcs[0].weight.device, fcs[0].weight.dtype
     act_scales = act_scales.to(device=device, dtype=dtype)
+    import pdb; pdb.set_trace()
+    """
+    목적: 목적: 여러 FC의 가중치 스케일(열 기준 max)과 사전 측정된 활성 스케일을 결합해 
+    채널별 스무딩 팩터 s(= act^a / weight^(1-a))를 계산한다.
+    """
     
-    weight_scales = torch.cat([fc.weight.abs().max(
-        dim=0, keepdim=True)[0] for fc in fcs], dim=0)
-    weight_scales = weight_scales.max(dim=0)[0].clamp(min=1e-5)
-
-    smoothing_factor = (act_scales.pow(alpha) / weight_scales.pow(1-alpha)
-              ).clamp(min=1e-5).to(device).to(dtype)
-
-    temp_save[name + '.' + mode] = smoothing_factor.detach().cpu()
+    # 1) 모든 FC의 weight에서 "입력 채널(in_features)별" 스케일 후보를 모은다.
+    #    - 각 fc.weight의 shape: [out_features, in_features]
+    #    - '출력 축(out_features)'을 따라 감소 연산 → [1, in_features] 형태의 한 줄 요약으로 만든다.
+    #    - 절댓값 기준으로 채널별 최대치(열 기준)를 구한다.
+    # w_cols = [fc.weight._____( )._____(dim=_____, keepdim=True)[0] for fc in fcs]
+    
+    # 2) FC들에서 나온 줄 요약들을 한데 모은 뒤(행 결합), 채널별로 최댓값만 남긴다.
+    #    - 결과 shape 흐름: list[[1, H], [1, H], ...] → [N_fc, H] → [H]
+    # weight_scales = torch._____(w_cols, dim=_____)
+    # weight_scales = weight_scales._____(dim=_____)[0]._____(min=1e-5)
+    
+    # 3) 스무딩 팩터 s 계산 (채널별):
+    #    s = (act_scales^alpha) / (weight_scales^(1 - alpha))
+    #    - 0 분모/언더플로 방지용 하한값 적용 (1e-5)
+    #    - 이후 연산 대상 파라미터와 동일한 device/dtype으로 맞춘다.
+    # smoothing_factor = _____
+    
     
     ln.weight.div_(smoothing_factor)
     if model_type == "transformers":

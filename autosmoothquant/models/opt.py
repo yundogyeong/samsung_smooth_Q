@@ -168,7 +168,6 @@ class QuantizedOPTDecoderLayer(nn.Module):
         )
         qlayer.fc1 = W8A8BFP32OFP32Linear.from_float(module.fc1, fc1_input_scale, act_quant=qlayer.fc1_quant_type)
         qlayer.fc2 = W8A8BFP32OFP32LinearWithQuantScale.from_float(module.fc2, fc2_input_scale, act_quant=qlayer.fc2_quant_type)
-
         # per-tensor일 때에만 LN 스케일 적용
         if quant_config["qkv"] == "per-tensor":
             qlayer.self_attn_layer_norm = QuantizedOPTLayerNorm.from_float(module.self_attn_layer_norm, attn_input_scale)
