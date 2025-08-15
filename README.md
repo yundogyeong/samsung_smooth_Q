@@ -20,7 +20,6 @@
 ---
 
 ### Practice 3: Quantize Real Value to INT8
-- **런타임 단계 (Done in runtime)**:
   - 입력 Activation을 스케일링 후 int8로 변환
   - Quantized Weight와 연산 수행
 
