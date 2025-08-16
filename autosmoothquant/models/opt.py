@@ -15,10 +15,11 @@ from transformers.models.opt.modeling_opt import (
 from transformers.utils import logging
 from transformers.activations import ACT2FN
 
-from autosmoothquant.layers.nn.linear import (
+from autosmoothquant.layers.nn.prac3 import (
     W8A8BFP32OFP32Linear,
     W8A8BFP32OFP32LinearWithQuantScale,
 )
+
 
 logger = logging.get_logger(__name__)
 

@@ -4,7 +4,7 @@ import os
 import json
 from pathlib import Path
 
-from autosmoothquant.quantize.smooth import smooth_lm
+from autosmoothquant.quantize.prac2 import smooth_lm
 from autosmoothquant.quantize.calibration import get_act_scales, get_static_decoder_layer_scales
 from autosmoothquant.utils import get_config, get_model_architecture, build_model_and_tokenizer, parse_quant_config
 

@@ -61,8 +61,8 @@ def get_act_scales(model, tokenizer, num_samples=512, seq_len=512):
     dataset = load_dataset(
     "wikitext", "wikitext-2-raw-v1",  # WikiText-2 raw 버전
     split="train[:512]"               # train split에서 앞 512개
-            )
-    dataset = dataset.shuffle(seed=42)
+    )
+    # dataset = dataset.shuffle(seed=42)
 
     for i in tqdm(range(num_samples)):
         input_ids = tokenizer(dataset[i]["text"], return_tensors="pt",
@@ -161,7 +161,7 @@ def get_static_decoder_layer_scales(model,
     "wikitext", "wikitext-2-raw-v1",  # WikiText-2 raw 버전
     split="train[:512]"               # train split에서 앞 512개
         )
-    dataset = dataset.shuffle(seed=42)
+    # dataset = dataset.shuffle(seed=42)
     for i in pbar:
         input_ids = tokenizer(dataset[i]["text"], return_tensors="pt",
                               max_length=seq_len, truncation=True).input_ids.to(device)

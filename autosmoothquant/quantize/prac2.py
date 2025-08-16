@@ -1,10 +1,9 @@
 import torch
 import torch.nn as nn
+import sys
 
 from transformers.models.opt.modeling_opt import OPTDecoderLayer
 from transformers.models.llama.modeling_llama import LlamaDecoderLayer, LlamaRMSNorm
-from transformers.models.mixtral.modeling_mixtral import MixtralDecoderLayer, MixtralRMSNorm
-from autosmoothquant.thirdparty.baichuan.modeling_baichuan import RMSNorm, BaichuanLayer
 
 temp_save = {}
 @torch.no_grad()
@@ -43,6 +42,11 @@ def smooth_ln_fcs(ln, fcs, act_scales, model_type = "transformers", alpha=0.5, o
     #    - 0 분모/언더플로 방지용 하한값 적용 (1e-5)
     #    - 이후 연산 대상 파라미터와 동일한 device/dtype으로 맞춘다.
     # smoothing_factor = _____
+    smoothing_factor = None
+    if org_smooth_params is not None:
+        if not torch.allclose(smoothing_factor, org_smooth_params.cuda(), rtol=1e-4, atol=1e-6):
+            print(f"[Error] smoothing_factor mismatch at {name}.{mode}")
+            sys.exit(1)
     
     
     ln.weight.div_(smoothing_factor)
@@ -54,19 +58,20 @@ def smooth_ln_fcs(ln, fcs, act_scales, model_type = "transformers", alpha=0.5, o
 
 @torch.no_grad()
 def smooth_lm(model, scales, alpha=0.5):
-    # smooth_params_org = torch.load('smooth_params.pt')
-    org_smooth_params=None
+    org_smooth = torch.load('/workspace/AutoSmoothQuant/autosmoothquant/examples/smooth_factor_opt_6.7b.pt')
     for name, module in model.named_modules():
         if isinstance(module, OPTDecoderLayer):
             attn_ln = module.self_attn_layer_norm
             qkv = [module.self_attn.q_proj,
                    module.self_attn.k_proj, module.self_attn.v_proj]
             qkv_input_scales = scales[name + '.self_attn.q_proj']
+            org_smooth_params = org_smooth[name + '.self_attn']
             smooth_ln_fcs(attn_ln, qkv, qkv_input_scales, "transformers", alpha, org_smooth_params, name, 'self_attn')
 
             ffn_ln = module.final_layer_norm
             fc1 = module.fc1
             fc1_input_scales = scales[name + '.fc1']
+            org_smooth_params = org_smooth[name + '.mlp']
             smooth_ln_fcs(ffn_ln, fc1, fc1_input_scales, "transformers", alpha, org_smooth_params, name, 'mlp')
             
         elif isinstance(module, LlamaDecoderLayer):
@@ -81,5 +86,3 @@ def smooth_lm(model, scales, alpha=0.5):
             fcs = [module.mlp.gate_proj, module.mlp.up_proj]
             fcs_input_scales = scales[name + '.mlp.gate_proj']
             smooth_ln_fcs(ffn_ln, fcs, fcs_input_scales, "llama", alpha)
-
-    torch.save(temp_save, 'smooth_factor_opt_6.7b.pt')

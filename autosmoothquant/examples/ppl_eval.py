@@ -86,7 +86,7 @@ if __name__ == "__main__":
             model = QuantizedOPTForCausalLM.from_pretrained(model_path, quant_config,
                                                             attn_implementation="eager", device_map="sequential")
         else:
-            model = QuantizedLlamaForCausalLM.from_pretrained(args.model_path, quant_config,
+            model = QuantizedOPTForCausalLM.from_pretrained(args.model_path, quant_config,
                                                                 attn_implementation="eager", device_map="sequential")
     else:
         model = AutoModelForCausalLM.from_pretrained(model_path, cache_dir='/workspace/cache', attn_implementation="eager", device_map="sequential", torch_dtype=torch.float16)
