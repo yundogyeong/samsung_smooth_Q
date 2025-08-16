@@ -71,6 +71,7 @@ def parse_args():
                         default='facebook/opt-6.7b', help='path contains tokenizer')
 
     parser.add_argument("--origin-model", action="store_true", default=False)
+    parser.add_argument("--non-smoothing", action="store_true", default=False)
     
     return parser.parse_args()
     
@@ -80,8 +81,13 @@ if __name__ == "__main__":
     if not args.origin_model:
         config_path = os.path.join(args.model_path, "quant_config.json")
         quant_config = parse_quant_config(config_path)
-        model = QuantizedOPTForCausalLM.from_pretrained(args.model_path, quant_config,
+        if args.non_smoothing:
+            model_path = "/workspace/cache/opt-6.7b_non_smooth/Non_smoothquant_int8"
+            model = QuantizedOPTForCausalLM.from_pretrained(model_path, quant_config,
                                                             attn_implementation="eager", device_map="sequential")
+        else:
+            model = QuantizedLlamaForCausalLM.from_pretrained(args.model_path, quant_config,
+                                                                attn_implementation="eager", device_map="sequential")
     else:
         model = AutoModelForCausalLM.from_pretrained(model_path, cache_dir='/workspace/cache', attn_implementation="eager", device_map="sequential", torch_dtype=torch.float16)
 
